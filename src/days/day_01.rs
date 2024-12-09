@@ -4,7 +4,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use crate::common::printwriteln;
+use aoclib_rs::printwriteln;
 
 pub fn run() {
     let write_file = File::create("outputs/01.txt").unwrap();

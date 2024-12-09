@@ -61,20 +61,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.94"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1fd03a028ef38ba2276dce7e33fcd6369c158a1bca17946c4b1b701891c1ff7"
-
-[[package]]
 name = "aoc24"
 version = "0.0.1"
 dependencies = [
- "anyhow",
+ "aoclib-rs",
  "clap",
  "once_cell",
  "regex",
 ]
+
+[[package]]
+name = "aoclib-rs"
+version = "0.0.1"
+source = "git+https://github.com/glennhartmann/aoclib-rs.git?tag=v0.0.1#6331f7eaeaaeca6185c296ba5d5630cd1061e4b9"
 
 [[package]]
 name = "clap"

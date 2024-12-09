@@ -3,7 +3,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use crate::common::printwriteln;
+use aoclib_rs::printwriteln;
 
 struct Position {
     c: u8,

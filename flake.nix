@@ -14,7 +14,12 @@
           version = manifest.version;
           src = builtins.path { path = ./.; name = "aoc24"; };
 
-          cargoLock = { lockFile = ./Cargo.lock; };
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+            outputHashes = {
+              "aoclib-rs-0.0.1" = "sha256-I0QggW7I4/iLh6qdM2+npldlGaPUR1NSLXxq/nga+Kw=";
+            };
+          };
         };
         aoc24-shell = pkgs.mkShell {
           inputsFrom = [ aoc24 ];
