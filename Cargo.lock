@@ -72,8 +72,8 @@ dependencies = [
 
 [[package]]
 name = "aoclib-rs"
-version = "0.0.1"
-source = "git+https://github.com/glennhartmann/aoclib-rs.git?tag=v0.0.1#6331f7eaeaaeca6185c296ba5d5630cd1061e4b9"
+version = "0.0.2"
+source = "git+https://github.com/glennhartmann/aoclib-rs.git?tag=v0.0.2#62dde9a7571ca8b79b9bc40a60015dad352cc5b8"
 
 [[package]]
 name = "clap"

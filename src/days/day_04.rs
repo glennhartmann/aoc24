@@ -3,7 +3,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{pad, printwriteln};
 
 pub fn run() {
     let write_file = File::create("outputs/04.txt").unwrap();
@@ -11,7 +11,7 @@ pub fn run() {
 
     let contents = read_to_string("inputs/04.txt").unwrap();
     let contents: Vec<&[u8]> = contents.trim().split('\n').map(|s| s.as_bytes()).collect();
-    let contents = pad(&contents);
+    let contents = pad(&contents, 4, b' ');
 
     part1(&mut writer, &contents);
     part2(&mut writer, &contents);
@@ -81,27 +81,4 @@ fn count_part1(contents: &[Vec<u8>], horiz: i32, vert: i32) -> u32 {
     }
 
     total
-}
-
-fn pad(contents: &Vec<&[u8]>) -> Vec<Vec<u8>> {
-    let mut r = Vec::with_capacity(contents.len());
-    let mut prefix = vec![vec![b' '; contents[0].len() + 8]; 4];
-    r.append(&mut prefix);
-
-    for line in contents {
-        let mut v = Vec::with_capacity(line.len() + 8);
-        let mut prefix = vec![b' '; 4];
-        let mut middle = line.to_vec();
-        let mut suffix = vec![b' '; 4];
-        v.append(&mut prefix);
-        v.append(&mut middle);
-        v.append(&mut suffix);
-
-        r.push(v);
-    }
-
-    let mut suffix = vec![vec![b' '; contents[0].len() + 8]; 4];
-    r.append(&mut suffix);
-
-    r
 }
