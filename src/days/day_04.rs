@@ -1,17 +1,14 @@
-use std::{
-    fs::{read_to_string, File},
-    io::{BufWriter, Write},
-};
+use std::io::{BufWriter, Write};
 
-use aoclib_rs::{pad, printwriteln};
+use aoclib_rs::{pad, prep_io, printwriteln, usize_plus_i32};
+
+const PADDING: usize = 4;
 
 pub fn run() {
-    let write_file = File::create("outputs/04.txt").unwrap();
-    let mut writer = BufWriter::new(&write_file);
-
-    let contents = read_to_string("inputs/04.txt").unwrap();
-    let contents: Vec<&[u8]> = contents.trim().split('\n').map(|s| s.as_bytes()).collect();
-    let contents = pad(&contents, 4, b' ');
+    let mut contents = String::new();
+    let (mut writer, contents) = prep_io(&mut contents, 4).unwrap();
+    let contents = contents.iter().map(|s| s.as_bytes()).collect();
+    let contents = pad(&contents, PADDING, b' ');
 
     part1(&mut writer, &contents);
     part2(&mut writer, &contents);
@@ -37,8 +34,8 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<u8>]) {
 
 fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<u8>]) {
     let mut total = 0;
-    for i in 4..(contents.len() - 4) {
-        for j in 4..(contents[i].len() - 4) {
+    for i in PADDING..(contents.len() - PADDING) {
+        for j in PADDING..(contents[i].len() - PADDING) {
             let mas1 = (contents[i][j] == b'M'
                 && contents[i + 1][j + 1] == b'A'
                 && contents[i + 2][j + 2] == b'S')
@@ -62,18 +59,18 @@ fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<u8>]) {
 
 fn count_part1(contents: &[Vec<u8>], horiz: i32, vert: i32) -> u32 {
     let mut total = 0;
-    for i in 4..(contents.len() - 4) {
-        for j in 4..(contents[i].len() - 4) {
+    for i in PADDING..(contents.len() - PADDING) {
+        for j in PADDING..(contents[i].len() - PADDING) {
             if contents[i][j] != b'X' {
                 continue;
             }
-            if contents[(i as i32 + horiz) as usize][(j as i32 + vert) as usize] != b'M' {
+            if contents[usize_plus_i32(i, horiz)][usize_plus_i32(j, vert)] != b'M' {
                 continue;
             }
-            if contents[(i as i32 + 2 * horiz) as usize][(j as i32 + 2 * vert) as usize] != b'A' {
+            if contents[usize_plus_i32(i, 2 * horiz)][usize_plus_i32(j, 2 * vert)] != b'A' {
                 continue;
             }
-            if contents[(i as i32 + 3 * horiz) as usize][(j as i32 + 3 * vert) as usize] != b'S' {
+            if contents[usize_plus_i32(i, 3 * horiz)][usize_plus_i32(j, 3 * vert)] != b'S' {
                 continue;
             }
             total += 1

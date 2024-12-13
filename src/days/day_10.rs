@@ -1,9 +1,6 @@
-use std::{
-    fs::{read_to_string, File},
-    io::{BufWriter, Write},
-};
+use std::io::{BufWriter, Write};
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{prep_io, printwriteln, split_by_char};
 
 #[derive(Copy, Clone)]
 struct Point {
@@ -21,22 +18,14 @@ impl Point {
 }
 
 pub fn run() {
-    let write_file = File::create("outputs/10.txt").unwrap();
-    let mut writer = BufWriter::new(&write_file);
-
-    let contents = read_to_string("inputs/10.txt").unwrap();
+    let mut contents = String::new();
+    let (mut writer, contents) = prep_io(&mut contents, 10).unwrap();
     let contents: Vec<Vec<Point>> = contents
-        .trim()
-        .split('\n')
+        .iter()
         .map(|r| {
-            r.split("")
-                .filter_map(|n| {
-                    if n.is_empty() {
-                        None
-                    } else {
-                        Some(Point::new(n.parse().unwrap()))
-                    }
-                })
+            split_by_char(r)
+                .iter()
+                .map(|n| Point::new(n.parse().unwrap()))
                 .collect()
         })
         .collect();

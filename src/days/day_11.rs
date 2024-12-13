@@ -4,18 +4,14 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{printwriteln, split_and_parse};
 
 pub fn run() {
     let write_file = File::create("outputs/11.txt").unwrap();
     let mut writer = BufWriter::new(&write_file);
 
     let contents = read_to_string("inputs/11.txt").unwrap();
-    let contents: Vec<u64> = contents
-        .trim()
-        .split(' ')
-        .map(|n| n.parse().unwrap())
-        .collect();
+    let contents: Vec<u64> = split_and_parse(contents.trim(), " ").unwrap();
 
     part1(&mut writer, &contents);
     part2(&mut writer, &contents);

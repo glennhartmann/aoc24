@@ -78,8 +78,8 @@ dependencies = [
 
 [[package]]
 name = "aoclib-rs"
-version = "0.0.3"
-source = "git+https://github.com/glennhartmann/aoclib-rs.git?tag=v0.0.3#68979b970ff2b5d2f8cada371cb51b7735eecf34"
+version = "0.0.4"
+source = "git+https://github.com/glennhartmann/aoclib-rs.git?tag=v0.0.4#57420f1d204f38f6e952a0d36b0067cd78ff2248"
 dependencies = [
  "anyhow",
 ]

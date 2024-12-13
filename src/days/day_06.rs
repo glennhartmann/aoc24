@@ -1,9 +1,6 @@
-use std::{
-    fs::{read_to_string, File},
-    io::{BufWriter, Write},
-};
+use std::io::{BufWriter, Write};
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{prep_io, printwriteln, u8_to_string, Direction};
 
 struct Position {
     c: u8,
@@ -16,42 +13,11 @@ impl Position {
     }
 }
 
-#[derive(Copy, Clone)]
-enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl Direction {
-    fn delta(self) -> (i32, i32) {
-        match self {
-            Direction::Up => (0, -1),
-            Direction::Down => (0, 1),
-            Direction::Left => (-1, 0),
-            Direction::Right => (1, 0),
-        }
-    }
-
-    fn rotate_right(self) -> Direction {
-        match self {
-            Direction::Up => Direction::Right,
-            Direction::Down => Direction::Left,
-            Direction::Left => Direction::Up,
-            Direction::Right => Direction::Down,
-        }
-    }
-}
-
 pub fn run() {
-    let write_file = File::create("outputs/06.txt").unwrap();
-    let mut writer = BufWriter::new(&write_file);
-
-    let contents = read_to_string("inputs/06.txt").unwrap();
+    let mut contents = String::new();
+    let (mut writer, contents) = prep_io(&mut contents, 6).unwrap();
     let mut contents: Vec<Vec<Position>> = contents
-        .trim()
-        .split('\n')
+        .iter()
         .map(|s| s.as_bytes().iter().map(|b| Position::new(*b)).collect())
         .collect();
 
@@ -102,7 +68,7 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, contents: &mut Vec<Vec<Position>>)
                         c: _,
                         visited: true,
                     } => "X".into(),
-                    Position { c, visited: false } => String::from_utf8(vec![*c]).unwrap(),
+                    Position { c, visited: false } => u8_to_string(*c),
                 }
             );
         }

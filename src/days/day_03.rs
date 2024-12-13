@@ -1,19 +1,12 @@
-use std::{
-    fs::{read_to_string, File},
-    io::{BufWriter, Write},
-};
+use std::io::{BufWriter, Write};
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{prep_io, printwriteln};
 
 use {once_cell::sync::Lazy, regex::Regex};
 
 pub fn run() {
-    let write_file = File::create("outputs/03.txt").unwrap();
-    let mut writer = BufWriter::new(&write_file);
-
-    let contents = read_to_string("inputs/03.txt").unwrap();
-    let contents = contents.split('\n');
-    let contents: Vec<&str> = contents.filter(|line| !line.is_empty()).collect();
+    let mut contents = String::new();
+    let (mut writer, contents) = prep_io(&mut contents, 3).unwrap();
 
     part1(&mut writer, &contents);
     part2(&mut writer, &contents);

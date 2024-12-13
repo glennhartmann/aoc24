@@ -1,17 +1,13 @@
 use std::{
     collections::HashMap,
-    fs::{read_to_string, File},
     io::{BufWriter, Write},
 };
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{prep_io, printwriteln, split_and_parse};
 
 pub fn run() {
-    let write_file = File::create("outputs/05.txt").unwrap();
-    let mut writer = BufWriter::new(&write_file);
-
-    let contents = read_to_string("inputs/05.txt").unwrap();
-    let contents: Vec<&str> = contents.trim().split('\n').collect();
+    let mut contents = String::new();
+    let (mut writer, contents) = prep_io(&mut contents, 5).unwrap();
 
     let mut rules = HashMap::new();
     let mut order = Vec::new();
@@ -24,17 +20,14 @@ pub fn run() {
                 continue;
             }
 
-            let mut lsp = line.split('|');
-            let first = lsp.next().unwrap().parse::<i32>().unwrap();
-            let second = lsp.next().unwrap().parse::<i32>().unwrap();
-
-            let entry: &mut Vec<i32> = rules.entry(second).or_default();
-            entry.push(first);
+            let lsp = split_and_parse(line, "|").unwrap();
+            let entry: &mut Vec<i32> = rules.entry(lsp[1]).or_default();
+            entry.push(lsp[0]);
 
             continue;
         }
 
-        let lsp: Vec<i32> = line.split(',').map(|n| n.parse::<i32>().unwrap()).collect();
+        let lsp = split_and_parse(line, ",").unwrap();
         order.push(lsp);
     }
 

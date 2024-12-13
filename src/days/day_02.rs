@@ -1,26 +1,14 @@
-use std::{
-    fs::{read_to_string, File},
-    io::{BufWriter, Write},
-};
+use std::io::{BufWriter, Write};
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{prep_io, printwriteln, split_and_parse};
 
 pub fn run() {
-    let write_file = File::create("outputs/02.txt").unwrap();
-    let mut writer = BufWriter::new(&write_file);
-
-    let contents = read_to_string("inputs/02.txt").unwrap();
-    let contents = contents.split('\n');
-    let contents: Vec<&str> = contents.filter(|line| !line.is_empty()).collect();
-
-    let mut reports = Vec::with_capacity(contents.len());
-    for line in contents {
-        reports.push(
-            line.split(' ')
-                .map(|v| v.parse::<u8>().unwrap())
-                .collect::<Vec<_>>(),
-        );
-    }
+    let mut contents = String::new();
+    let (mut writer, contents) = prep_io(&mut contents, 2).unwrap();
+    let reports = contents
+        .iter()
+        .map(|s| split_and_parse(s, " ").unwrap())
+        .collect();
 
     part1(&mut writer, &reports);
     part2(&mut writer, &reports);

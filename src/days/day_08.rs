@@ -1,11 +1,10 @@
 use std::{
     collections::{HashMap, HashSet},
-    fs::{read_to_string, File},
     io::{BufWriter, Write},
     iter,
 };
 
-use aoclib_rs::{pairwise_iter, printwriteln};
+use aoclib_rs::{pairwise_iter, prep_io, printwriteln};
 
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
 struct Point {
@@ -23,11 +22,9 @@ impl Point {
 }
 
 pub fn run() {
-    let write_file = File::create("outputs/08.txt").unwrap();
-    let mut writer = BufWriter::new(&write_file);
-
-    let contents = read_to_string("inputs/08.txt").unwrap();
-    let contents: Vec<&[u8]> = contents.trim().split('\n').map(|s| s.as_bytes()).collect();
+    let mut contents = String::new();
+    let (mut writer, contents) = prep_io(&mut contents, 8).unwrap();
+    let contents: Vec<&[u8]> = contents.iter().map(|s| s.as_bytes()).collect();
 
     let mut m: HashMap<u8, Vec<Point>> = HashMap::new();
     for (y, row) in contents.iter().enumerate() {

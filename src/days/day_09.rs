@@ -4,7 +4,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use aoclib_rs::printwriteln;
+use aoclib_rs::{printwriteln, split_by_char};
 
 #[derive(PartialEq, Copy, Clone)]
 enum SpanType {
@@ -37,16 +37,9 @@ pub fn run() {
     let mut writer = BufWriter::new(&write_file);
 
     let contents = read_to_string("inputs/09.txt").unwrap();
-    let contents: Vec<usize> = contents
-        .trim()
-        .split("")
-        .filter_map(|n| {
-            if n.is_empty() {
-                None
-            } else {
-                Some(n.parse::<usize>().unwrap())
-            }
-        })
+    let contents: Vec<usize> = split_by_char(contents.trim())
+        .iter()
+        .map(|n| n.parse().unwrap())
         .collect();
 
     part1(&mut writer, &contents);
