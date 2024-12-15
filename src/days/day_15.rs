@@ -1,6 +1,6 @@
 use std::io::{BufWriter, Write};
 
-use aoclib_rs::{prep_io, printwriteln, u8_to_string, usize_plus_i32, Direction};
+use aoclib_rs::{prep_io, printwriteln, u8_to_string, Direction};
 
 pub fn run() {
     let mut contents = String::new();
@@ -121,10 +121,10 @@ fn attempt_move_1(
     pos: (usize, usize),
     dir: Direction,
 ) -> (bool, (usize, usize)) {
-    let next_x = usize_plus_i32(pos.0, dir.delta().0);
-    let next_y = usize_plus_i32(pos.1, dir.delta().1);
+    let (next_x, next_y) = dir.apply_delta_to_usizes(pos);
 
-    match map[next_y][next_x] {
+    let next = map[next_y][next_x];
+    match next {
         b'#' => (false, (pos.0, pos.1)),
         b'.' => {
             map[next_y][next_x] = map[pos.1][pos.0];
@@ -143,16 +143,12 @@ fn attempt_move_1(
 
             (success, next)
         }
-        _ => panic!(
-            "invalid map character: {}",
-            u8_to_string(map[next_y][next_x])
-        ),
+        _ => panic!("invalid map character: {}", u8_to_string(next)),
     }
 }
 
 fn can_move_2(map: &Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> bool {
-    let next_x = usize_plus_i32(pos.0, dir.delta().0);
-    let next_y = usize_plus_i32(pos.1, dir.delta().1);
+    let (next_x, next_y) = dir.apply_delta_to_usizes(pos);
 
     let next = map[next_y][next_x];
     match next {
@@ -175,8 +171,7 @@ fn can_move_2(map: &Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> bool {
 }
 
 fn do_move_2(map: &mut Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> (usize, usize) {
-    let next_x = usize_plus_i32(pos.0, dir.delta().0);
-    let next_y = usize_plus_i32(pos.1, dir.delta().1);
+    let (next_x, next_y) = dir.apply_delta_to_usizes(pos);
 
     let next = map[next_y][next_x];
     match next {
