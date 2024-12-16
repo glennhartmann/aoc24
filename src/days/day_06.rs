@@ -1,7 +1,11 @@
-use std::io::{BufWriter, Write};
+use std::{
+    collections::HashSet,
+    io::{BufWriter, Write},
+};
 
 use aoclib_rs::{prep_io, printwriteln, u8_to_string, Direction};
 
+#[derive(Copy, Clone)]
 struct Position {
     c: u8,
     visited: bool,
@@ -16,48 +20,21 @@ impl Position {
 pub fn run() {
     let mut contents = String::new();
     let (mut writer, contents) = prep_io(&mut contents, 6).unwrap();
-    let mut contents: Vec<Vec<Position>> = contents
+    let contents: Vec<Vec<Position>> = contents
         .iter()
         .map(|s| s.as_bytes().iter().map(|b| Position::new(*b)).collect())
         .collect();
 
-    part1(&mut writer, &mut contents);
-    //part2(&mut writer, &contents);
+    let part1_contents = part1(&mut writer, contents.clone());
+    part2(&mut writer, &contents, &part1_contents);
 }
 
-fn part1<W: Write>(writer: &mut BufWriter<W>, contents: &mut Vec<Vec<Position>>) {
-    let (mut x, mut y) = find_start(contents);
-    contents[y as usize][x as usize].visited = true;
-    let mut dir = Direction::Up;
-
-    'outer: loop {
-        let (mut next, mut bk);
-        (next, x, y, bk) = check_delta(dir, x, y, contents);
-        if bk {
-            break 'outer;
-        }
-
-        let mut count = 1;
-        while contents[y as usize][x as usize].c == b'#' {
-            x -= next.0;
-            y -= next.1;
-
-            dir = dir.rotate_right();
-
-            (next, x, y, bk) = check_delta(dir, x, y, contents);
-            if bk {
-                break 'outer;
-            }
-
-            count += 1;
-
-            if count > 4 {
-                panic!("trapped??");
-            }
-        }
-
-        contents[y as usize][x as usize].visited = true;
-    }
+fn part1<W: Write>(
+    writer: &mut BufWriter<W>,
+    mut contents: Vec<Vec<Position>>,
+) -> Vec<Vec<Position>> {
+    let start = find_start(&contents);
+    check_for_loop(&mut contents, start);
 
     for row in &mut *contents {
         for cell in row {
@@ -87,9 +64,45 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, contents: &mut Vec<Vec<Position>>)
         })
     )
     .unwrap();
+
+    contents
 }
 
-//fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &Vec<Vec<Position>>) {}
+fn part2<W: Write>(
+    writer: &mut BufWriter<W>,
+    contents: &[Vec<Position>],
+    part1_contents: &[Vec<Position>],
+) {
+    let start = find_start(contents);
+
+    let mut potential_locations = Vec::new();
+    for (y, row) in part1_contents.iter().enumerate() {
+        for (x, cell) in row.iter().enumerate() {
+            if cell.visited && (x as i32 != start.0 || y as i32 != start.1) {
+                potential_locations.push((x, y));
+            }
+        }
+    }
+
+    let mut total = 0;
+    for (i, pos) in potential_locations.iter().enumerate() {
+        let mut contents = contents.to_owned();
+        contents[pos.1][pos.0].c = b'#';
+
+        if check_for_loop(&mut contents, start) {
+            total += 1;
+        }
+
+        println!(
+            "done another loop ({}/{}) - total so far {}",
+            i,
+            potential_locations.len(),
+            total
+        );
+    }
+
+    printwriteln!(writer, "part 2: {}", total).unwrap();
+}
 
 fn find_start(contents: &[Vec<Position>]) -> (i32, i32) {
     for (y, row) in contents.iter().enumerate() {
@@ -101,6 +114,51 @@ fn find_start(contents: &[Vec<Position>]) -> (i32, i32) {
     }
 
     panic!("^ not found");
+}
+
+fn check_for_loop(contents: &mut [Vec<Position>], start: (i32, i32)) -> bool {
+    let (mut x, mut y) = start;
+    let mut dir = Direction::Up;
+
+    contents[y as usize][x as usize].visited = true;
+    let mut hs = HashSet::new();
+    hs.insert((start, dir));
+
+    'outer: loop {
+        let (mut next, mut bk);
+        (next, x, y, bk) = check_delta(dir, x, y, contents);
+        if bk {
+            break 'outer;
+        }
+
+        let mut count = 1;
+        while contents[y as usize][x as usize].c == b'#' {
+            x -= next.0;
+            y -= next.1;
+
+            dir = dir.rotate_right();
+
+            (next, x, y, bk) = check_delta(dir, x, y, contents);
+            if bk {
+                break 'outer;
+            }
+
+            count += 1;
+
+            if count > 4 {
+                panic!("trapped??");
+            }
+        }
+
+        if hs.contains(&((x, y), dir)) {
+            return true;
+        }
+
+        contents[y as usize][x as usize].visited = true;
+        hs.insert(((x, y), dir));
+    }
+
+    false
 }
 
 fn check_delta(
