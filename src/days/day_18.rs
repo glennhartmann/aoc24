@@ -12,14 +12,14 @@ const HEIGHT: usize = 71;
 #[derive(Copy, Clone)]
 struct Node {
     val: u8,
-    distance: u32,
+    distance: Option<u32>,
 }
 
 impl Node {
     fn new() -> Node {
         Node {
             val: b'.',
-            distance: u32::MAX,
+            distance: None,
         }
     }
 }
@@ -70,7 +70,7 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
         map.insert((point[0], point[1]), b'#');
         mp[point[1]][point[0]].val = b'#';
     }
-    mp[0][0].distance = 0;
+    mp[0][0].distance = Some(0);
 
     for y in 0..HEIGHT {
         for x in 0..WIDTH {
@@ -79,7 +79,7 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
         println!();
     }
 
-    let shortest_path = dijkstra(&mut mp);
+    let shortest_path = dijkstra(&mut mp).unwrap();
     printwriteln!(writer, "part 1: {}", shortest_path).unwrap();
 }
 
@@ -90,7 +90,7 @@ fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
         map.insert((point[0], point[1]), b'#');
         mp[point[1]][point[0]].val = b'#';
     }
-    mp[0][0].distance = 0;
+    mp[0][0].distance = Some(0);
 
     for y in 0..HEIGHT {
         for x in 0..WIDTH {
@@ -101,8 +101,7 @@ fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
 
     let mut curr = 1024;
     loop {
-        let shortest_path = dijkstra(&mut mp.clone());
-        if shortest_path == u32::MAX {
+        if dijkstra(&mut mp.clone()).is_none() {
             break;
         }
         curr += 1;
@@ -121,7 +120,7 @@ fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
     printwriteln!(writer, "part 2: {} ({},{})", curr, point[0], point[1]).unwrap();
 }
 
-fn dijkstra(map: &mut [Vec<Node>]) -> u32 {
+fn dijkstra(map: &mut [Vec<Node>]) -> Option<u32> {
     let mut q = BinaryHeap::new();
     q.push(Reverse(PqElement { x: 0, y: 0, val: 0 }));
 
@@ -129,25 +128,25 @@ fn dijkstra(map: &mut [Vec<Node>]) -> u32 {
         let curr = q.pop().unwrap();
 
         if curr.0.x == WIDTH - 1 && curr.0.y == HEIGHT - 1 {
-            return curr.0.val;
+            return Some(curr.0.val);
         }
 
         for n in Direction::iter_valid_usizes_deltas((curr.0.x, curr.0.y), (WIDTH, HEIGHT)) {
             let d = if map[n.1][n.0].val == b'#' {
-                u32::MAX
+                None
             } else {
-                curr.0.val + 1
+                Some(curr.0.val + 1)
             };
-            if d < map[n.1][n.0].distance {
+            if d.is_some() && map[n.1][n.0].distance.is_none() {
                 map[n.1][n.0].distance = d;
                 q.push(Reverse(PqElement {
                     x: n.0,
                     y: n.1,
-                    val: d,
+                    val: d.unwrap(),
                 }));
             }
         }
     }
 
-    u32::MAX
+    None
 }
