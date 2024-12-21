@@ -2,10 +2,9 @@ use std::{
     cmp::{Ordering, Reverse},
     collections::{BinaryHeap, HashMap},
     io::{BufWriter, Write},
-    iter,
 };
 
-use aoclib_rs::{prep_io, printwriteln, split_and_parse, u8_to_string};
+use aoclib_rs::{dir::Direction, prep_io, printwriteln, split_and_parse, u8_to_string};
 
 const WIDTH: usize = 71;
 const HEIGHT: usize = 71;
@@ -133,7 +132,7 @@ fn dijkstra(map: &mut [Vec<Node>]) -> u32 {
             return curr.0.val;
         }
 
-        for n in neighbours((curr.0.x, curr.0.y)) {
+        for n in Direction::iter_valid_usizes_deltas((curr.0.x, curr.0.y), (WIDTH, HEIGHT)) {
             let d = if map[n.1][n.0].val == b'#' {
                 u32::MAX
             } else {
@@ -151,22 +150,4 @@ fn dijkstra(map: &mut [Vec<Node>]) -> u32 {
     }
 
     u32::MAX
-}
-
-fn neighbours(p: (usize, usize)) -> impl Iterator<Item = (usize, usize)> {
-    let v: Vec<(i32, i32)> = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
-    let mut i = 0;
-
-    iter::from_fn(move || {
-        while i < v.len() {
-            let d = v[i];
-            i += 1;
-            let new_p = (d.0 + p.0 as i32, d.1 + p.1 as i32);
-            if !(new_p.0 < 0 || new_p.0 >= WIDTH as i32 || new_p.1 < 0 || new_p.1 >= HEIGHT as i32)
-            {
-                return Some((new_p.0 as usize, new_p.1 as usize));
-            }
-        }
-        None
-    })
 }

@@ -3,7 +3,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use aoclib_rs::{prep_io, printwriteln, u8_to_string, Direction};
+use aoclib_rs::{dir::Direction, prep_io, printwriteln, u8_to_string};
 
 #[derive(Copy, Clone)]
 struct Position {

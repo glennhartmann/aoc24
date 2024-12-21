@@ -1,47 +1,6 @@
 use std::{collections::HashMap, io::Write};
 
-use aoclib_rs::{prep_io, printwriteln};
-
-struct Trie {
-    children: HashMap<char, Trie>,
-    is_terminal: bool,
-}
-
-impl Trie {
-    fn new() -> Trie {
-        Trie {
-            children: HashMap::new(),
-            is_terminal: true,
-        }
-    }
-
-    fn insert(&mut self, word: &str) {
-        let mut curr = self;
-        let chars: Vec<_> = word.chars().collect();
-        for (i, c) in chars.iter().enumerate() {
-            curr = curr
-                .children
-                .entry(*c)
-                .and_modify(|t| t.is_terminal |= i == chars.len() - 1)
-                .or_insert(Trie {
-                    children: HashMap::new(),
-                    is_terminal: i == chars.len() - 1,
-                });
-        }
-    }
-
-    fn find(&self, word: &str) -> Option<&Trie> {
-        let mut curr = self;
-        for c in word.chars() {
-            match curr.children.get(&c) {
-                None => return None,
-                Some(t) => curr = t,
-            };
-        }
-
-        Some(curr)
-    }
-}
+use aoclib_rs::{prep_io, printwriteln, trie::Trie};
 
 pub fn run() {
     let mut contents = String::new();
@@ -87,7 +46,7 @@ fn count_possibilities_rec(trie: &Trie, pattern: &str, hm: &mut HashMap<String, 
                 return total;
             }
             Some(sub_trie) => {
-                if !sub_trie.is_terminal {
+                if !sub_trie.is_terminal() {
                     continue;
                 } else if i == pattern.len() {
                     total += 1;
