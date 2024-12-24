@@ -1,10 +1,14 @@
 use std::{
-    cmp::{Ordering, Reverse},
-    collections::{BinaryHeap, HashMap},
+    collections::HashMap,
     io::{BufWriter, Write},
+    iter,
 };
 
-use aoclib_rs::{dir::Direction, prep_io, printwriteln, split_and_parse, u8_to_string};
+use aoclib_rs::{
+    dijkstra::{Dijkstrable, PqElement},
+    dir::Direction,
+    prep_io, printwriteln, split_and_parse, u8_to_string,
+};
 
 const WIDTH: usize = 71;
 const HEIGHT: usize = 71;
@@ -24,32 +28,33 @@ impl Node {
     }
 }
 
-#[derive(Copy, Clone)]
-struct PqElement {
-    x: usize,
-    y: usize,
-    val: u32,
-}
+struct Map(Vec<Vec<Node>>);
 
-impl Ord for PqElement {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.val.cmp(&other.val)
+impl Dijkstrable for Map {
+    type Point = (usize, usize);
+    type Bounds = (usize, usize);
+    type Dist = u32;
+    type PQE = PqElement<(usize, usize), u32>;
+
+    fn neighbours(
+        p: Self::Point,
+        b: Self::Bounds,
+    ) -> impl Iterator<Item = (Self::Point, Self::Dist)> {
+        iter::zip(Direction::iter_valid_usizes_deltas(p, b), iter::repeat(1))
+    }
+
+    fn is_impossible(&self, p: Self::Point) -> bool {
+        self.0[p.1][p.0].val == b'#'
+    }
+
+    fn dist(&self, p: Self::Point) -> Option<Self::Dist> {
+        self.0[p.1][p.0].distance
+    }
+
+    fn set_dist(&mut self, p: Self::Point, dist: Option<Self::Dist>) {
+        self.0[p.1][p.0].distance = dist;
     }
 }
-
-impl PartialOrd for PqElement {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for PqElement {
-    fn eq(&self, other: &Self) -> bool {
-        self.val == other.val
-    }
-}
-
-impl Eq for PqElement {}
 
 pub fn run() {
     let mut contents = String::new();
@@ -79,8 +84,14 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
         println!();
     }
 
-    let shortest_path = dijkstra(&mut mp).unwrap();
-    printwriteln!(writer, "part 1: {}", shortest_path).unwrap();
+    let mut mp = Map(mp);
+    mp.dijkstra((0, 0), 0, (WIDTH, HEIGHT));
+    printwriteln!(
+        writer,
+        "part 1: {}",
+        mp.0[HEIGHT - 1][WIDTH - 1].distance.unwrap()
+    )
+    .unwrap();
 }
 
 fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
@@ -101,7 +112,9 @@ fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
 
     let mut curr = 1024;
     loop {
-        if dijkstra(&mut mp.clone()).is_none() {
+        let mut mp2 = Map(mp.clone());
+        mp2.dijkstra((0, 0), 0, (WIDTH, HEIGHT));
+        if mp2.0[HEIGHT - 1][WIDTH - 1].distance.is_none() {
             break;
         }
         curr += 1;
@@ -118,35 +131,4 @@ fn part2<W: Write>(writer: &mut BufWriter<W>, contents: &[Vec<usize>]) {
 
     let point = &contents[curr];
     printwriteln!(writer, "part 2: {} ({},{})", curr, point[0], point[1]).unwrap();
-}
-
-fn dijkstra(map: &mut [Vec<Node>]) -> Option<u32> {
-    let mut q = BinaryHeap::new();
-    q.push(Reverse(PqElement { x: 0, y: 0, val: 0 }));
-
-    while !q.is_empty() {
-        let curr = q.pop().unwrap();
-
-        if curr.0.x == WIDTH - 1 && curr.0.y == HEIGHT - 1 {
-            return Some(curr.0.val);
-        }
-
-        for n in Direction::iter_valid_usizes_deltas((curr.0.x, curr.0.y), (WIDTH, HEIGHT)) {
-            let d = if map[n.1][n.0].val == b'#' {
-                None
-            } else {
-                Some(curr.0.val + 1)
-            };
-            if d.is_some() && map[n.1][n.0].distance.is_none() {
-                map[n.1][n.0].distance = d;
-                q.push(Reverse(PqElement {
-                    x: n.0,
-                    y: n.1,
-                    val: d.unwrap(),
-                }));
-            }
-        }
-    }
-
-    None
 }

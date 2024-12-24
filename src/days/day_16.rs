@@ -1,15 +1,18 @@
 use std::{
-    cmp::{Ordering, Reverse},
-    collections::{BinaryHeap, HashSet},
+    collections::HashSet,
     io::{BufWriter, Write},
 };
 
-use aoclib_rs::{dir::Direction, prep_io, printwriteln};
+use aoclib_rs::{
+    dijkstra::{Dijkstrable, PqElement},
+    dir::Direction,
+    prep_io, printwriteln,
+};
 
 #[derive(Copy, Clone)]
 struct Node {
     val: u8,
-    distance: u32,
+    distance: Option<u32>,
     visited: bool,
 }
 
@@ -17,34 +20,39 @@ impl Node {
     fn new(val: u8) -> Node {
         Node {
             val,
-            distance: u32::MAX,
+            distance: None,
             visited: false,
         }
     }
 }
 
-#[derive(Copy, Clone)]
-struct PqElement((usize, usize, Direction), u32);
+struct Map<'a>(&'a mut Vec<Vec<Vec<Node>>>);
 
-impl Ord for PqElement {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.1.cmp(&other.1)
+impl<'a> Dijkstrable for Map<'a> {
+    type Point = (usize, usize, Direction);
+    type Bounds = ();
+    type Dist = u32;
+    type PQE = PqElement<(usize, usize, Direction), u32>;
+
+    fn neighbours(
+        p: Self::Point,
+        _: Self::Bounds,
+    ) -> impl Iterator<Item = (Self::Point, Self::Dist)> {
+        neighbours(p).into_iter()
+    }
+
+    fn is_impossible(&self, p: Self::Point) -> bool {
+        self.0[p.1][p.0][dir_to_usize(p.2)].val == b'#'
+    }
+
+    fn dist(&self, p: Self::Point) -> Option<Self::Dist> {
+        self.0[p.1][p.0][dir_to_usize(p.2)].distance
+    }
+
+    fn set_dist(&mut self, p: Self::Point, dist: Option<Self::Dist>) {
+        self.0[p.1][p.0][dir_to_usize(p.2)].distance = dist;
     }
 }
-
-impl PartialOrd for PqElement {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for PqElement {
-    fn eq(&self, other: &Self) -> bool {
-        self.1 == other.1
-    }
-}
-
-impl Eq for PqElement {}
 
 pub fn run() {
     let mut contents = String::new();
@@ -61,14 +69,17 @@ pub fn run() {
     part2(&mut writer, &mut contents);
 }
 
-fn part1<W: Write>(writer: &mut BufWriter<W>, map: &mut [Vec<Vec<Node>>]) {
+fn part1<W: Write>(writer: &mut BufWriter<W>, map: &mut Vec<Vec<Vec<Node>>>) {
     let start = find_start_end(map, b'S');
     let end = find_start_end(map, b'E');
-    dijkstra(map, (start.0, start.1, Direction::Right));
+    let mut map = Map(map);
+    map.dijkstra((start.0, start.1, Direction::Right), 0, ());
     printwriteln!(
         writer,
         "part 1: {}",
-        map[end.1][end.0][dir_to_usize(Direction::Right)].distance
+        map.0[end.1][end.0][dir_to_usize(Direction::Right)]
+            .distance
+            .unwrap()
     )
     .unwrap();
 }
@@ -95,11 +106,16 @@ fn compute_cells_on_path_rec(
     map[loc.1][loc.0][dir_to_usize(loc.2)].visited = true;
 
     for n in neighbours_reverse(loc) {
-        if map[n.1][n.0][dir_to_usize(n.2)].distance
-            < map[loc.1][loc.0][dir_to_usize(loc.2)].distance
+        let nval = map[n.0 .1][n.0 .0][dir_to_usize(n.0 .2)];
+        if nval.distance.is_none() {
+            continue;
+        }
+
+        if map[n.0 .1][n.0 .0][dir_to_usize(n.0 .2)].distance.unwrap()
+            < map[loc.1][loc.0][dir_to_usize(loc.2)].distance.unwrap()
         {
-            hs.insert((n.0, n.1));
-            compute_cells_on_path_rec(map, (n.0, n.1, n.2), hs);
+            hs.insert((n.0 .0, n.0 .1));
+            compute_cells_on_path_rec(map, n.0, hs);
         }
     }
 }
@@ -113,42 +129,19 @@ fn dir_to_usize(dir: Direction) -> usize {
     }
 }
 
-fn dijkstra(map: &mut [Vec<Vec<Node>>], start: (usize, usize, Direction)) -> u32 {
-    let mut q = BinaryHeap::new();
-    q.push(Reverse(PqElement(start, 0)));
-
-    while !q.is_empty() {
-        let curr = q.pop().unwrap();
-
-        for n in neighbours(curr.0 .0) {
-            let d = if map[n.1][n.0][dir_to_usize(n.2)].val == b'#' {
-                u32::MAX
-            } else {
-                curr.0 .1 + n.3
-            };
-            if d < map[n.1][n.0][dir_to_usize(n.2)].distance {
-                map[n.1][n.0][dir_to_usize(n.2)].distance = d;
-                q.push(Reverse(PqElement((n.0, n.1, n.2), d)));
-            }
-        }
-    }
-
-    u32::MAX
-}
-
-fn neighbours(p: (usize, usize, Direction)) -> Vec<(usize, usize, Direction, u32)> {
+fn neighbours(p: (usize, usize, Direction)) -> Vec<((usize, usize, Direction), u32)> {
     let straight = p.2.apply_delta_to_usizes((p.0, p.1));
 
     vec![
-        (p.0, p.1, p.2.rotate_right(), 1000),
-        (p.0, p.1, p.2.rotate_left(), 1000),
-        (straight.0, straight.1, p.2, 1),
+        ((p.0, p.1, p.2.rotate_right()), 1000),
+        ((p.0, p.1, p.2.rotate_left()), 1000),
+        ((straight.0, straight.1, p.2), 1),
     ]
 }
 
-fn neighbours_reverse(p: (usize, usize, Direction)) -> Vec<(usize, usize, Direction, u32)> {
+fn neighbours_reverse(p: (usize, usize, Direction)) -> Vec<((usize, usize, Direction), u32)> {
     let mut n = neighbours(p);
-    (n[2].0, n[2].1) = p.2.opposite().apply_delta_to_usizes((p.0, p.1));
+    (n[2].0 .0, n[2].0 .1) = p.2.opposite().apply_delta_to_usizes((p.0, p.1));
 
     n
 }
