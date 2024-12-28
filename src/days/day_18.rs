@@ -6,7 +6,7 @@ use std::{
 
 use aoclib_rs::{
     dijkstra::{Dijkstrable, PqElement},
-    dir::Direction,
+    dir::{Dir4, Direction},
     prep_io, printwriteln, split_and_parse, u8_to_string,
 };
 
@@ -40,7 +40,7 @@ impl Dijkstrable for Map {
         p: Self::Point,
         b: Self::Bounds,
     ) -> impl Iterator<Item = (Self::Point, Self::Dist)> {
-        iter::zip(Direction::iter_valid_usizes_deltas(p, b), iter::repeat(1))
+        iter::zip(Dir4::iter_valid_usizes_deltas(p, b), iter::repeat(1))
     }
 
     fn is_impossible(&self, p: Self::Point) -> bool {

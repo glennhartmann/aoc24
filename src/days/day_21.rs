@@ -4,7 +4,7 @@ use std::{
     ops::{Index, RangeFrom},
 };
 
-use aoclib_rs::{dir::Direction, prep_io, printwriteln};
+use aoclib_rs::{dir::Dir4, prep_io, printwriteln};
 
 const NUM_PAD: [(i32, i32); 11] = [
     (1, 3), // 0
@@ -34,7 +34,7 @@ const DIR_PAD_BLANK: (i32, i32) = (0, 0);
 
 #[derive(Debug, Copy, Clone)]
 enum Command {
-    Direction(Direction),
+    Dir4(Dir4),
     A,
 }
 
@@ -162,15 +162,15 @@ fn compute_sequences_to_pos_rec(
     rec(
         pos_diff.0,
         (pos.0 + sign(pos_diff.0), pos.1),
-        Command::Direction(Direction::Right),
-        Command::Direction(Direction::Left),
+        Command::Dir4(Dir4::Right),
+        Command::Dir4(Dir4::Left),
     );
 
     rec(
         pos_diff.1,
         (pos.0, (pos.1 + sign(pos_diff.1))),
-        Command::Direction(Direction::Down),
-        Command::Direction(Direction::Up),
+        Command::Dir4(Dir4::Down),
+        Command::Dir4(Dir4::Up),
     );
 
     seqs
@@ -229,10 +229,10 @@ fn compute_dir_pad_sequences_internal(suffix: &[Command], pos: (i32, i32)) -> Ve
 
 fn pos_of_dir_pad(c: Command) -> (i32, i32) {
     match c {
-        Command::Direction(Direction::Up) => DIR_PAD[0],
-        Command::Direction(Direction::Down) => DIR_PAD[3],
-        Command::Direction(Direction::Left) => DIR_PAD[2],
-        Command::Direction(Direction::Right) => DIR_PAD[4],
+        Command::Dir4(Dir4::Up) => DIR_PAD[0],
+        Command::Dir4(Dir4::Down) => DIR_PAD[3],
+        Command::Dir4(Dir4::Left) => DIR_PAD[2],
+        Command::Dir4(Dir4::Right) => DIR_PAD[4],
         Command::A => DIR_PAD[1],
     }
 }

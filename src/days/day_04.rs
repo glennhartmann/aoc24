@@ -1,6 +1,6 @@
 use std::io::{BufWriter, Write};
 
-use aoclib_rs::{pad, prep_io, printwriteln, usize_plus_i32};
+use aoclib_rs::{pad, prep_io, printwriteln, usize_plus_i};
 
 const PADDING: usize = 4;
 
@@ -64,13 +64,13 @@ fn count_part1(contents: &[Vec<u8>], horiz: i32, vert: i32) -> u32 {
             if contents[i][j] != b'X' {
                 continue;
             }
-            if contents[usize_plus_i32(i, horiz)][usize_plus_i32(j, vert)] != b'M' {
+            if contents[usize_plus_i(i, horiz)][usize_plus_i(j, vert)] != b'M' {
                 continue;
             }
-            if contents[usize_plus_i32(i, 2 * horiz)][usize_plus_i32(j, 2 * vert)] != b'A' {
+            if contents[usize_plus_i(i, 2 * horiz)][usize_plus_i(j, 2 * vert)] != b'A' {
                 continue;
             }
-            if contents[usize_plus_i32(i, 3 * horiz)][usize_plus_i32(j, 3 * vert)] != b'S' {
+            if contents[usize_plus_i(i, 3 * horiz)][usize_plus_i(j, 3 * vert)] != b'S' {
                 continue;
             }
             total += 1

@@ -3,7 +3,10 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use aoclib_rs::{dir::Direction, prep_io, printwriteln, u8_to_string};
+use aoclib_rs::{
+    dir::{Dir4, Direction},
+    prep_io, printwriteln, u8_to_string,
+};
 
 #[derive(Copy, Clone)]
 struct Position {
@@ -118,7 +121,7 @@ fn find_start(contents: &[Vec<Position>]) -> (i32, i32) {
 
 fn check_for_loop(contents: &mut [Vec<Position>], start: (i32, i32)) -> bool {
     let (mut x, mut y) = start;
-    let mut dir = Direction::Up;
+    let mut dir = Dir4::Up;
 
     contents[y as usize][x as usize].visited = true;
     let mut hs = HashSet::new();
@@ -162,12 +165,13 @@ fn check_for_loop(contents: &mut [Vec<Position>], start: (i32, i32)) -> bool {
 }
 
 fn check_delta(
-    dir: Direction,
+    dir: Dir4,
     mut x: i32,
     mut y: i32,
     contents: &[Vec<Position>],
 ) -> ((i32, i32), i32, i32, bool) {
-    let next = dir.delta();
+    let (nx, ny) = dir.delta();
+    let next = (nx as i32, ny as i32);
     x += next.0;
     y += next.1;
 

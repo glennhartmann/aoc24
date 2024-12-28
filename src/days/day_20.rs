@@ -7,8 +7,8 @@ use std::{
 
 use aoclib_rs::{
     dijkstra::{Dijkstrable, PqElement},
-    dir::Direction,
-    prep_io, printwriteln, u8_to_string,
+    dir::{Dir4, Direction},
+    position_2d, prep_io, printwriteln, u8_to_string,
 };
 
 #[derive(Copy, Clone)]
@@ -45,7 +45,7 @@ impl Dijkstrable for Points<'_> {
         p: Self::Point,
         b: Self::Bounds,
     ) -> impl Iterator<Item = (Self::Point, Self::Dist)> {
-        iter::zip(Direction::iter_valid_usizes_deltas(p, b), iter::repeat(1))
+        iter::zip(Dir4::iter_valid_usizes_deltas(p, b), iter::repeat(1))
     }
 
     fn is_impossible(&self, p: Self::Point) -> bool {
@@ -79,7 +79,7 @@ pub fn run() {
 }
 
 fn part1<W: Write>(writer: &mut BufWriter<W>, points: &mut Vec<Vec<Point>>) {
-    let end = find_start_end(points, b'E');
+    let end = position_2d(points, |cell| cell.val == b'E').unwrap();
     points[end.1][end.0].dist = Some(0);
 
     let bounds = (points.len(), points[0].len());
@@ -95,10 +95,8 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, points: &mut Vec<Vec<Point>>) {
                 continue;
             }
 
-            for n1 in Direction::iter_valid_usizes_deltas((x, y), (points.len(), row.len())) {
-                for n2 in
-                    Direction::iter_valid_usizes_deltas((n1.0, n1.1), (points.len(), row.len()))
-                {
+            for n1 in Dir4::iter_valid_usizes_deltas((x, y), (points.len(), row.len())) {
+                for n2 in Dir4::iter_valid_usizes_deltas((n1.0, n1.1), (points.len(), row.len())) {
                     let n2cell = points[n2.1][n2.0];
                     if n2cell.val != b'#' && n2cell.dist.is_some() {
                         let dist = cell.dist.unwrap() as i32 - n2cell.dist.unwrap() as i32 - 2;
@@ -121,16 +119,4 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, points: &mut Vec<Vec<Point>>) {
     }
 
     printwriteln!(writer, "part 1: {}", over100).unwrap();
-}
-
-fn find_start_end(map: &[Vec<Point>], symbol: u8) -> (usize, usize) {
-    for (y, row) in map.iter().enumerate() {
-        for (x, cell) in row.iter().enumerate() {
-            if cell.val == symbol {
-                return (x, y);
-            }
-        }
-    }
-
-    panic!("start not found");
 }

@@ -1,6 +1,9 @@
 use std::io::{BufWriter, Write};
 
-use aoclib_rs::{dir::Direction, pad, prep_io, printwriteln, u8_to_string};
+use aoclib_rs::{
+    dir::{Dir4, Direction},
+    pad, prep_io, printwriteln, u8_to_string,
+};
 
 struct Region {
     plant: u8,
@@ -137,17 +140,17 @@ fn flood_fill(
     visited[y][x] = true;
 
     for dir in [
-        (side_counted[y][x].up, Direction::Up),
-        (side_counted[y][x].left, Direction::Left),
-        (side_counted[y][x].down, Direction::Down),
-        (side_counted[y][x].right, Direction::Right),
+        (side_counted[y][x].up, Dir4::Up),
+        (side_counted[y][x].left, Dir4::Left),
+        (side_counted[y][x].down, Dir4::Down),
+        (side_counted[y][x].right, Dir4::Right),
     ] {
         if !dir.0 {
             count_side(region, contents, loc, side_counted, dir.1);
         }
     }
 
-    for loc in Direction::iter_valid_usizes_deltas((x, y), (contents[0].len(), contents.len())) {
+    for loc in Dir4::iter_valid_usizes_deltas((x, y), (contents[0].len(), contents.len())) {
         flood_fill(
             region,
             region_index,
@@ -162,7 +165,7 @@ fn flood_fill(
 
 fn get_perimiter(plant: u8, contents: &[Vec<u8>], x: usize, y: usize) -> u64 {
     let mut total = 0;
-    for (x, y) in Direction::iter_valid_usizes_deltas((x, y), (contents[0].len(), contents.len())) {
+    for (x, y) in Dir4::iter_valid_usizes_deltas((x, y), (contents[0].len(), contents.len())) {
         if contents[y][x] != plant {
             total += 1;
         }
@@ -176,19 +179,19 @@ fn count_side(
     contents: &[Vec<u8>],
     loc: (usize, usize),
     side_counted: &mut [Vec<SidesCounted>],
-    dir: Direction,
+    dir: Dir4,
 ) {
     let (x, y) = loc;
     let (move_dir_1, move_dir_2, next_x, next_y) = match dir {
-        Direction::Up | Direction::Down => (Direction::Left, Direction::Right, x + 1, y),
-        Direction::Left | Direction::Right => (Direction::Up, Direction::Down, x, y + 1),
+        Dir4::Up | Dir4::Down => (Dir4::Left, Dir4::Right, x + 1, y),
+        Dir4::Left | Dir4::Right => (Dir4::Up, Dir4::Down, x, y + 1),
     };
 
     let (wall_x, wall_y) = match dir {
-        Direction::Up => (x, y - 1),
-        Direction::Down => (x, y + 1),
-        Direction::Left => (x - 1, y),
-        Direction::Right => (x + 1, y),
+        Dir4::Up => (x, y - 1),
+        Dir4::Down => (x, y + 1),
+        Dir4::Left => (x - 1, y),
+        Dir4::Right => (x + 1, y),
     };
 
     if contents[wall_y][wall_x] != region.plant {
@@ -217,8 +220,8 @@ fn count_side_internal(
     contents: &[Vec<u8>],
     loc: (usize, usize),
     side_counted: &mut [Vec<SidesCounted>],
-    wall_dir: Direction,
-    move_dir: Direction,
+    wall_dir: Dir4,
+    move_dir: Dir4,
 ) {
     let (mut x, mut y) = loc;
     println!(
@@ -234,10 +237,10 @@ fn count_side_internal(
         }
 
         match wall_dir {
-            Direction::Up => side_counted[y][x].up = true,
-            Direction::Down => side_counted[y][x].down = true,
-            Direction::Left => side_counted[y][x].left = true,
-            Direction::Right => side_counted[y][x].right = true,
+            Dir4::Up => side_counted[y][x].up = true,
+            Dir4::Down => side_counted[y][x].down = true,
+            Dir4::Left => side_counted[y][x].left = true,
+            Dir4::Right => side_counted[y][x].right = true,
         };
         println!("marked wall at {} {} (dir {:?}) counted", x, y, wall_dir);
 

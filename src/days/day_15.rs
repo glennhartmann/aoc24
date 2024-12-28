@@ -1,6 +1,9 @@
 use std::io::{BufWriter, Write};
 
-use aoclib_rs::{dir::Direction, prep_io, printwriteln, u8_to_string};
+use aoclib_rs::{
+    dir::{Dir4, Direction},
+    prep_io, printwriteln, u8_to_string,
+};
 
 pub fn run() {
     let mut contents = String::new();
@@ -31,14 +34,14 @@ pub fn run() {
 
     let mut dirs = Vec::new();
     for ln in contents[(line + 1)..].iter() {
-        let mut v: Vec<Direction> = ln
+        let mut v: Vec<Dir4> = ln
             .as_bytes()
             .iter()
             .map(|c| match c {
-                b'^' => Direction::Up,
-                b'v' => Direction::Down,
-                b'<' => Direction::Left,
-                b'>' => Direction::Right,
+                b'^' => Dir4::Up,
+                b'v' => Dir4::Down,
+                b'<' => Dir4::Left,
+                b'>' => Dir4::Right,
                 _ => panic!("invalid direction: {}", u8_to_string(*c)),
             })
             .collect();
@@ -56,7 +59,7 @@ fn part1<W: Write>(
     writer: &mut BufWriter<W>,
     map: &mut Vec<Vec<u8>>,
     mut pos: (usize, usize),
-    dirs: &Vec<Direction>,
+    dirs: &Vec<Dir4>,
 ) {
     for dir in dirs {
         (_, pos) = attempt_move_1(map, pos, *dir);
@@ -80,7 +83,7 @@ fn part2<W: Write>(
     writer: &mut BufWriter<W>,
     map: &mut Vec<Vec<u8>>,
     mut pos: (usize, usize),
-    dirs: &Vec<Direction>,
+    dirs: &Vec<Dir4>,
 ) {
     println!("initial map:\n{}", map_to_string(map));
 
@@ -119,7 +122,7 @@ fn find_robot(map: &[Vec<u8>]) -> (usize, usize) {
 fn attempt_move_1(
     map: &mut Vec<Vec<u8>>,
     pos: (usize, usize),
-    dir: Direction,
+    dir: Dir4,
 ) -> (bool, (usize, usize)) {
     let (next_x, next_y) = dir.apply_delta_to_usizes(pos);
 
@@ -147,7 +150,7 @@ fn attempt_move_1(
     }
 }
 
-fn can_move_2(map: &Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> bool {
+fn can_move_2(map: &Vec<Vec<u8>>, pos: (usize, usize), dir: Dir4) -> bool {
     let (next_x, next_y) = dir.apply_delta_to_usizes(pos);
 
     let next = map[next_y][next_x];
@@ -156,7 +159,7 @@ fn can_move_2(map: &Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> bool {
         b'.' => true,
         b'[' | b']' => {
             can_move_2(map, (next_x, next_y), dir)
-                && if dir == Direction::Up || dir == Direction::Down {
+                && if dir == Dir4::Up || dir == Dir4::Down {
                     can_move_2(
                         map,
                         (if next == b'[' { next_x + 1 } else { next_x - 1 }, next_y),
@@ -170,7 +173,7 @@ fn can_move_2(map: &Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> bool {
     }
 }
 
-fn do_move_2(map: &mut Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> (usize, usize) {
+fn do_move_2(map: &mut Vec<Vec<u8>>, pos: (usize, usize), dir: Dir4) -> (usize, usize) {
     let (next_x, next_y) = dir.apply_delta_to_usizes(pos);
 
     let next = map[next_y][next_x];
@@ -182,7 +185,7 @@ fn do_move_2(map: &mut Vec<Vec<u8>>, pos: (usize, usize), dir: Direction) -> (us
         }
         b'[' | b']' => {
             do_move_2(map, (next_x, next_y), dir);
-            if dir == Direction::Up || dir == Direction::Down {
+            if dir == Dir4::Up || dir == Dir4::Down {
                 do_move_2(
                     map,
                     (if next == b'[' { next_x + 1 } else { next_x - 1 }, next_y),

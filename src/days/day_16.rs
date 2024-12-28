@@ -5,7 +5,7 @@ use std::{
 
 use aoclib_rs::{
     dijkstra::{Dijkstrable, PqElement},
-    dir::Direction,
+    dir::{Dir4, Direction},
     prep_io, printwriteln,
 };
 
@@ -29,10 +29,10 @@ impl Node {
 struct Map<'a>(&'a mut Vec<Vec<Vec<Node>>>);
 
 impl<'a> Dijkstrable for Map<'a> {
-    type Point = (usize, usize, Direction);
+    type Point = (usize, usize, Dir4);
     type Bounds = ();
     type Dist = u32;
-    type PQE = PqElement<(usize, usize, Direction), u32>;
+    type PQE = PqElement<(usize, usize, Dir4), u32>;
 
     fn neighbours(
         p: Self::Point,
@@ -73,11 +73,11 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, map: &mut Vec<Vec<Vec<Node>>>) {
     let start = find_start_end(map, b'S');
     let end = find_start_end(map, b'E');
     let mut map = Map(map);
-    map.dijkstra((start.0, start.1, Direction::Right), 0, ());
+    map.dijkstra((start.0, start.1, Dir4::Right), 0, ());
     printwriteln!(
         writer,
         "part 1: {}",
-        map.0[end.1][end.0][dir_to_usize(Direction::Right)]
+        map.0[end.1][end.0][dir_to_usize(Dir4::Right)]
             .distance
             .unwrap()
     )
@@ -89,14 +89,14 @@ fn part2<W: Write>(writer: &mut BufWriter<W>, map: &mut Vec<Vec<Vec<Node>>>) {
     let end = find_start_end(map, b'E');
     hs.insert(find_start_end(map, b'S'));
     hs.insert(end);
-    compute_cells_on_path_rec(map, (end.0, end.1, Direction::Right), &mut hs);
+    compute_cells_on_path_rec(map, (end.0, end.1, Dir4::Right), &mut hs);
 
     printwriteln!(writer, "part 2: {}", hs.len()).unwrap();
 }
 
 fn compute_cells_on_path_rec(
     map: &mut Vec<Vec<Vec<Node>>>,
-    loc: (usize, usize, Direction),
+    loc: (usize, usize, Dir4),
     hs: &mut HashSet<(usize, usize)>,
 ) {
     if map[loc.1][loc.0][dir_to_usize(loc.2)].visited {
@@ -120,16 +120,16 @@ fn compute_cells_on_path_rec(
     }
 }
 
-fn dir_to_usize(dir: Direction) -> usize {
+fn dir_to_usize(dir: Dir4) -> usize {
     match dir {
-        Direction::Up => 3,
-        Direction::Down => 1,
-        Direction::Left => 2,
-        Direction::Right => 0,
+        Dir4::Up => 3,
+        Dir4::Down => 1,
+        Dir4::Left => 2,
+        Dir4::Right => 0,
     }
 }
 
-fn neighbours(p: (usize, usize, Direction)) -> Vec<((usize, usize, Direction), u32)> {
+fn neighbours(p: (usize, usize, Dir4)) -> Vec<((usize, usize, Dir4), u32)> {
     let straight = p.2.apply_delta_to_usizes((p.0, p.1));
 
     vec![
@@ -139,7 +139,7 @@ fn neighbours(p: (usize, usize, Direction)) -> Vec<((usize, usize, Direction), u
     ]
 }
 
-fn neighbours_reverse(p: (usize, usize, Direction)) -> Vec<((usize, usize, Direction), u32)> {
+fn neighbours_reverse(p: (usize, usize, Dir4)) -> Vec<((usize, usize, Dir4), u32)> {
     let mut n = neighbours(p);
     (n[2].0 .0, n[2].0 .1) = p.2.opposite().apply_delta_to_usizes((p.0, p.1));
 
