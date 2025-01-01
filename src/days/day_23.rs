@@ -6,6 +6,7 @@ use std::{
 
 use aoclib_rs::{prep_io, printwriteln};
 
+#[derive(Clone)]
 struct Graph<'a>(HashMap<&'a str, Node<'a>>);
 
 impl<'a> Graph<'a> {
@@ -41,6 +42,7 @@ impl<'a> DerefMut for Graph<'a> {
     }
 }
 
+#[derive(Clone)]
 struct Node<'a> {
     neighbours: HashSet<&'a str>,
 }
@@ -58,6 +60,7 @@ pub fn run() {
 
     let g = Graph::new(&contents);
     part1(&mut writer, &g);
+    part2(&mut writer, &g);
 }
 
 fn part1<W: Write>(writer: &mut BufWriter<W>, g: &Graph) {
@@ -87,4 +90,50 @@ fn part1<W: Write>(writer: &mut BufWriter<W>, g: &Graph) {
     }
 
     printwriteln!(writer, "part 1: {}", total).unwrap();
+}
+
+fn part2<W: Write>(writer: &mut BufWriter<W>, g: &Graph) {
+    let mut maximal_cliques = Vec::new();
+    bron_kerbosch_basic(
+        g,
+        HashSet::new(),
+        g.keys().cloned().collect(),
+        HashSet::new(),
+        &mut maximal_cliques,
+    );
+
+    let maximum_clique = maximal_cliques.iter().max_by_key(|e| e.len()).unwrap();
+    let mut maximum_clique_vec: Vec<&str> = maximum_clique.iter().cloned().collect();
+    maximum_clique_vec.sort();
+
+    printwriteln!(writer, "part 2: {}", maximum_clique_vec.join(",")).unwrap();
+}
+
+/// https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm#Without_pivoting
+fn bron_kerbosch_basic<'a>(
+    g: &'a Graph<'a>,
+    r: HashSet<&'a str>,
+    p: HashSet<&'a str>,
+    mut x: HashSet<&'a str>,
+    maximal_cliques: &mut Vec<HashSet<&'a str>>,
+) {
+    if p.is_empty() && x.is_empty() {
+        maximal_cliques.push(r);
+        return;
+    }
+
+    let mut next_p = p.clone();
+    for v in p.iter() {
+        let neighbours = &g.get(v).unwrap().neighbours;
+        bron_kerbosch_basic(
+            g,
+            r.union(&HashSet::from([*v])).cloned().collect(),
+            next_p.intersection(neighbours).cloned().collect(),
+            x.intersection(neighbours).cloned().collect(),
+            maximal_cliques,
+        );
+
+        next_p.remove(v);
+        x.insert(v);
+    }
 }
